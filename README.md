@@ -39,7 +39,7 @@ for enrichment (or un-enrichment, if it is low).
 There will also be a pdf file, `A_to_B.pdf`, which contains plots of the permutation
 distributions of each of the three measures described above, as well as a series of
 plots of the three measures when the regions are shifted fixed amounts to the left and
-to the right of their current locations. You can see an (ugly) example plot [here](https://github.com/cwhelan/permuting-feature-enrichment-test/blob/master/example_output/Gibbon_Breakpoints_to_Evolutionary_Breakpoints.pdf?raw=true).
+to the right of their current locations. You can see an example plot [here](https://github.com/cwhelan/permuting-feature-enrichment-test/blob/master/example_output/example_plots.pdf?raw=true).
 
 Prerequisites
 -------------
