@@ -22,8 +22,9 @@ parser.add_argument("--replot", action='store_true', dest="replot", help="only r
 parser.add_argument("--shift_only", action='store_true', dest="shift_only", help="only do shift analysis")
 parser.add_argument("--process_iteration_chunk", help="one of bp_hits|feature_hits|bases_overlapped")
 parser.add_argument("--iteration_number", type=int, help="starting iteration number")
-parser.add_argument("--iteration_chunk_size", type=int, default=1, help="number of iterations in this chunk")
+parser.add_argument("--iteration_chunk_size", type=int, default=100, help="number of iterations in this chunk")
 parser.add_argument("--use_condor", action='store_true', dest="use_condor", help="execute permutation workers on the condor scheduling engine")
+parser.add_argument("--verbose", action='store_true', dest="verbose", help="execute permutation workers on the condor scheduling engine")
 
 
 args = parser.parse_args()
@@ -41,14 +42,24 @@ permutations = args.permutations
 cores = args.cores
 replot = args.replot
 shift_only = args.shift_only
+use_condor = args.use_condor
+verbose = args.verbose
 
 script_path = os.path.dirname( os.path.realpath( __file__ ) )
 
 def process_iteration(i, fun, gaps, bp_file, genome, feature_file):
+    if verbose:
+        sys.stderr.write("running iteration %s\n" % i)
     if gaps != None:
-        shufflep = subprocess.Popen(['shuffleBed', '-excl', gaps, '-i', bp_file, '-g', genome, '-chrom'], stdout=subprocess.PIPE)
+        command = ['shuffleBed', '-excl', gaps, '-i', bp_file, '-g', genome, '-chrom']
+        if verbose:
+            sys.stderr.write(str(command) + "\n")
+        shufflep = subprocess.Popen(command, stdout=subprocess.PIPE)
     else:
-        shufflep = subprocess.Popen(['shuffleBed', '-i', bp_file, '-g', genome, '-chrom'], stdout=subprocess.PIPE)
+        command = ['shuffleBed', '-i', bp_file, '-g', genome, '-chrom']
+        if verbose:
+            sys.stderr.write(str(command) + "\n")
+        shufflep = subprocess.Popen(command, stdout=subprocess.PIPE)
     sortp = subprocess.Popen('sort -k1,1 -k2,2n', stdin=shufflep.stdout, stdout=subprocess.PIPE, shell=True)
     shuffled = sortp.communicate()[0]
     hits = fun(feature_file, '-', input=shuffled)
@@ -60,7 +71,16 @@ def wrap_process_iteration(arg_tuple):
     condor_run_prefix = []
     if (bool(myargs[7])):
         condor_run_prefix = ['condor_run']
-    iteration_command = condor_run_prefix + ['python', script_path + '/overlap_bps_with_feature.py', myargs[3], "none", myargs[5], "none", myargs[4], "--process_iteration", myargs[1], "--iteration_number", str(myargs[0]), "--iteration_chunk_size", str(myargs[6]), "--gaps", str(myargs[2])]
+    verbose_opt = []
+    if verbose:
+        verbose_opt = ['--verbose']
+        sys.stderr.write("verbose opt: " + str(verbose_opt))
+    gaps_opts = []
+    if myargs[2] is not None:
+        gaps_opts = ["--gaps", str(myargs[2])]
+    iteration_command = condor_run_prefix + ['python', script_path + '/overlap_bps_with_feature.py', myargs[3], "none", myargs[5], "none", myargs[4], "--process_iteration", myargs[1], "--iteration_number", str(myargs[0]), "--iteration_chunk_size", str(myargs[6])] + gaps_opts + verbose_opt
+    if verbose:
+        sys.stderr.write(str(iteration_command) + "\n")
     result = subprocess.Popen(iteration_command, stdout=subprocess.PIPE).communicate()[0]
     return result
 
@@ -113,7 +133,7 @@ if process_iteration_cmd == None:
             # use shuffleBed to permute bp locations
             print "Computing permutations for BP hits"
             bps_with_hits_file = open('bps_with_hits.txt', 'w')
-            num_random_bp_hits = p.map(wrap_process_iteration, [(i, "bp_hits", gaps, bp_file, genome, feature_file, iteration_chunk_size) for i in xrange(0, iterations, iteration_chunk_size, use_condor)])
+            num_random_bp_hits = p.map(wrap_process_iteration, [(i, "bp_hits", gaps, bp_file, genome, feature_file, iteration_chunk_size, use_condor) for i in xrange(0, iterations, iteration_chunk_size)])
             for ip in ("".join(num_random_bp_hits)).rstrip().split("\n"):
                 fields = ip.split("\t")
                 bps_with_hits_file.write(str(fields[0]) + "\t" + str(fields[1]) + "\n")
@@ -121,7 +141,7 @@ if process_iteration_cmd == None:
 
             print "Computing permutations for feature hits"
             feature_hits_file = open('feature_hits.txt', 'w')
-            num_random_feature_hits = p.map(wrap_process_iteration, [(i, "feature_hits", gaps, bp_file, genome, feature_file, iteration_chunk_size) for i in xrange(0, iterations, iteration_chunk_size, use_condor)])
+            num_random_feature_hits = p.map(wrap_process_iteration, [(i, "feature_hits", gaps, bp_file, genome, feature_file, iteration_chunk_size, use_condor) for i in xrange(0, iterations, iteration_chunk_size)])
             for ip in ("".join(num_random_feature_hits)).rstrip().split("\n"):
                 fields = ip.split("\t")
                 feature_hits_file.write(str(fields[0]) + "\t" + str(fields[1]) + "\n")
@@ -129,7 +149,7 @@ if process_iteration_cmd == None:
 
             print "Computing permutations for bases overlapped"
             bases_overlap_file = open('bases_overlapped.txt', 'w')
-            num_bases_overlapped = p.map(wrap_process_iteration, [(i, "bases_overlapped", gaps, bp_file, genome, feature_file, iteration_chunk_size) for i in xrange(0, iterations, iteration_chunk_size, use_condor)])
+            num_bases_overlapped = p.map(wrap_process_iteration, [(i, "bases_overlapped", gaps, bp_file, genome, feature_file, iteration_chunk_size, use_condor) for i in xrange(0, iterations, iteration_chunk_size)])
             for ip in ("".join(num_bases_overlapped)).rstrip().split("\n"):
                 fields = ip.split("\t")
                 bases_overlap_file.write(str(fields[0]) + "\t" + str(fields[1]) + "\n")
@@ -172,9 +192,9 @@ if process_iteration_cmd == None:
         results_dirname = bp_name.replace(' ', '_') + "_to_" + feature_name.replace(' ', '_')
         # plot the results
         if replot:
-            subprocess.call(map(str, ['/g/whelanch/software/bin/Rscript', script_path + '/plot_results.R', feature_name, bp_name, num_real_bp_hits, num_real_feature_hits, real_bases_overlapped, results_dirname]))
+            subprocess.call(map(str, ['Rscript', script_path + '/plot_results.R', feature_name, bp_name, num_real_bp_hits, num_real_feature_hits, real_bases_overlapped, results_dirname]))
         else:
-            subprocess.call(map(str, ['/g/whelanch/software/bin/Rscript', script_path + '/plot_results.R', feature_name, bp_name, num_real_bp_hits, num_real_feature_hits, real_bases_overlapped, '.']))
+            subprocess.call(map(str, ['Rscript', script_path + '/plot_results.R', feature_name, bp_name, num_real_bp_hits, num_real_feature_hits, real_bases_overlapped, '.']))
 
             os.mkdir(results_dirname)
             shutil.move('bases_overlapped.txt', results_dirname + "/")
