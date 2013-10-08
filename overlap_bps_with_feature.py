@@ -9,13 +9,6 @@ import time
 import random
 from multiprocessing import Pool
 
-# import math, datetime
-# import rpy2.robjects.lib.ggplot2 as ggplot2
-# from rpy2.robjects import *
-# from rpy2.robjects.packages import importr
-# base = importr('base')
-# grdevices = importr('grDevices')
-
 parser = argparse.ArgumentParser()
 parser.add_argument("bp_file", help="BED file of breakpoint regions")
 parser.add_argument("bp_name", help="Name of this set of breakpoint regions")
@@ -23,13 +16,13 @@ parser.add_argument("feature_file", help="BED file of features to test against")
 parser.add_argument("feature_name", help="name of the features being tested against")
 parser.add_argument("genome", help="FAI file of the genome")
 parser.add_argument("--gaps", help="BED file of gaps in the genome")
-parser.add_argument("--process_iteration_chunk", help="one of bp_hits|feature_hits|bases_overlapped")
-parser.add_argument("--iteration_number", type=int, help="starting iteration number")
-parser.add_argument("--iteration_chunk_size", type=int, default=1, help="number of iterations in this chunk")
 parser.add_argument("--permutations", type=int, default=10000, help="iteration number")
 parser.add_argument("--cores", type=int, default=100, help="number of worker cores on the cluster to use")
 parser.add_argument("--replot", action='store_true', dest="replot", help="only replot a directory, don't redo the permutations")
-parser.add_argument("--shift_only", action='store_true', dest="shift_only", help="only do shift analysis"
+parser.add_argument("--shift_only", action='store_true', dest="shift_only", help="only do shift analysis")
+parser.add_argument("--process_iteration_chunk", help="one of bp_hits|feature_hits|bases_overlapped")
+parser.add_argument("--iteration_number", type=int, help="starting iteration number")
+parser.add_argument("--iteration_chunk_size", type=int, default=1, help="number of iterations in this chunk")
 parser.add_argument("--use_condor", action='store_true', dest="use_condor", help="execute permutation workers on the condor scheduling engine")
 
 
