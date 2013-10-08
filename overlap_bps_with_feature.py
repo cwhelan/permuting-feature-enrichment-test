@@ -116,6 +116,11 @@ if process_iteration_cmd == None:
     if not replot and not shift_only:
         iterations = permutations
         p = Pool(cores)
+        results_dirname = bp_name.replace(' ', '_') + "_to_" + feature_name.replace(' ', '_')
+        if (os.path.exists(results_dirname)):
+            sys.stderr.write("Directory %s already exists; please remove it before re-running\n" % results_dirname)
+            sys.exit(1)
+
     # compute the real number of bps that overlap a feature
     num_real_bp_hits = compute_bp_hits(feature_file, bp_file)
     print "num bps that overlap features: {0}".format(num_real_bp_hits)
