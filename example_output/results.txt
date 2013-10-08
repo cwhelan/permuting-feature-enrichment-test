@@ -1,0 +1,6 @@
+REGION_HITS	REAL	Gibbon Breakpoints	Evolutionary Breakpoints	46
+REGION_HITS	QUANTILE	Gibbon Breakpoints	Evolutionary Breakpoints	0.823
+FEATURE_HITS	REAL	Gibbon Breakpoints	Evolutionary Breakpoints	110
+FEATURE_HITS	QUANTILE	Gibbon Breakpoints	Evolutionary Breakpoints	0.999
+OVERLAP	REAL	Gibbon Breakpoints	Evolutionary Breakpoints	753149
+OVERLAP	QUANTILE	Gibbon Breakpoints	Evolutionary Breakpoints	0.933
