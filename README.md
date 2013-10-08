@@ -47,9 +47,9 @@ Prerequisites
 The following programs need to be installed and in the path of the
 user executing the script:
 
-BEDTools <https://code.google.com/p/bedtools/> (tested with 2.17.0)
-BEDOps <https://code.google.com/p/bedops/> (tested with 2.10)
-R (Specifically Rscript) (tested with 2.14)
+* BEDTools <https://code.google.com/p/bedtools/> (tested with 2.17.0)
+* BEDOps <https://code.google.com/p/bedops/> (tested with 2.10)
+* R (Specifically Rscript) (tested with 2.14)
 
 The Python script requires the argparse and multiprocessing libraries
 The R script requires the ggplot2 and grid libraries
