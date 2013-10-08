@@ -59,17 +59,15 @@ def process_iteration(i, fun, gaps, bp_file, genome, feature_file):
     hits = fun(feature_file, '-', input=shuffled)
     return (str(i) + "\t" + str(hits))
 
-# doesn't support passing gaps yet
 def wrap_process_iteration(arg_tuple):
     myargs = arg_tuple
     time.sleep(random.random() * 60)
-    iteration_command = ['condor_run', 'python', script_path + '/overlap_bps_with_feature.py', myargs[3], "none", myargs[5], "none", myargs[4], "--process_iteration", myargs[1], "--iteration_number", str(myargs[0]), "--iteration_chunk_size", str(myargs[6])]
+    iteration_command = ['condor_run', 'python', script_path + '/overlap_bps_with_feature.py', myargs[3], "none", myargs[5], "none", myargs[4], "--process_iteration", myargs[1], "--iteration_number", str(myargs[0]), "--iteration_chunk_size", str(myargs[6]), "--gaps", str(myargs[2])]
     result = subprocess.Popen(iteration_command, stdout=subprocess.PIPE).communicate()[0]
     return result
 
 def compute_bases_overlapped(feature_file, bp_file, input=None):
     if bp_file == '-':
-#        random_bp_hits = subprocess.Popen(['intersectBed', '-a', feature_file, '-b', bp_file, '-wo', '-sorted'], stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(input)[0]
         random_bp_hits = subprocess.Popen(['bedmap', '--bases-uniq', bp_file, feature_file], stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(input)[0]
     else:
         random_bp_hits = subprocess.Popen(['bedmap', '--bases-uniq', bp_file, feature_file], stdout=subprocess.PIPE).communicate()[0]
@@ -79,29 +77,10 @@ def compute_bases_overlapped(feature_file, bp_file, input=None):
             bases_overlapped += int(line)
     return bases_overlapped
 
-# def compute_bp_hits(feature_file, bp_file, input=None):
-#     if bp_file == 'stdin':
-#         bp_hits = subprocess.Popen(['intersectBed', '-a', feature_file, '-b', bp_file, '-wb', '-sorted'], stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(input)[0]
-#     else:
-#         bp_hits = subprocess.Popen(['intersectBed', '-a', feature_file, '-b', bp_file, '-wb', '-sorted'], stdout=subprocess.PIPE).communicate()[0]
-#     hits = 0
-#     current_bp = ""
-#     bps = set()
-#     for line in bp_hits.split("\n"):
-#         fields = line.split("\t")
-#         if len(fields) > 6:
-#             sys.exit("please make sure your feature file is in BED3 format")
-#         if len(fields) == 6:
-#             bp = "\t".join(fields[3:6])
-#             bps.add(bp)
-#     return len(bps)
-
 def compute_bp_hits(feature_file, bp_file, input=None):
     if bp_file == '-':
-#        bp_hits = subprocess.Popen(['intersectBed', '-a', feature_file, '-b', bp_file, '-wa', '-u', '-sorted'], stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(input)[0]
         bp_hits = subprocess.Popen(['bedops', '--element-of', '-1',  bp_file,  feature_file], stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(input)[0]
     else:
-#        bp_hits = subprocess.Popen(['intersectBed', '-a', feature_file, '-b', bp_file, '-wa', '-u', '-sorted'], stdout=subprocess.PIPE).communicate()[0]
         bp_hits = subprocess.Popen(['bedops', '--element-of', '-1', bp_file,  feature_file], stdout=subprocess.PIPE).communicate()[0]
     hits = len(bp_hits.split("\n")) - 1
     return hits
@@ -109,10 +88,8 @@ def compute_bp_hits(feature_file, bp_file, input=None):
 
 def compute_feature_hits(feature_file, bp_file, input=None):
     if bp_file == '-':
-#        bp_hits = subprocess.Popen(['intersectBed', '-a', feature_file, '-b', bp_file, '-wa', '-u', '-sorted'], stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(input)[0]
         bp_hits = subprocess.Popen(['bedops', '--element-of', '-1',  feature_file,  bp_file], stdin=subprocess.PIPE, stdout=subprocess.PIPE).communicate(input)[0]
     else:
-#        bp_hits = subprocess.Popen(['intersectBed', '-a', feature_file, '-b', bp_file, '-wa', '-u', '-sorted'], stdout=subprocess.PIPE).communicate()[0]
         bp_hits = subprocess.Popen(['bedops', '--element-of', '-1', feature_file,  bp_file], stdout=subprocess.PIPE).communicate()[0]
     hits = len(bp_hits.split("\n")) - 1
     return hits
@@ -166,9 +143,6 @@ if process_iteration_cmd == None:
         shifted_feature_hits_file = open('shifted_feature_hits.txt', 'w')
         shifted_bases_overlapped_file = open('shifted_bases_overlapped.txt', 'w')
         for i in xrange(-1000000,1000000,25000):
-            #sys.stderr.write("shift: " + str(i) + "\n")
-            #sys.stderr.write("\t".join(['slopBed', '-i', bp_file, '-g', genome, '-l', str(i), '-r', str(-1 * i)]))
-            #sys.stderr.write("\n")
             shifted_regions = subprocess.Popen(['slopBed', '-i', bp_file, '-g', genome, '-l', str(i), '-r', str(-1 * i)], stdout=subprocess.PIPE).communicate()[0]
 
             # regions very close to the ends of chromosomes can end up with starts greater than ends; need to filter them out
@@ -225,4 +199,3 @@ elif process_iteration_cmd == "bases_overlapped":
         print process_iteration(i, compute_bases_overlapped, gaps, bp_file, genome, feature_file)
 else:
     sys.stderr.write("Bad process_iteration commmand!\n")
-#sys.stderr.write("all done\n")
