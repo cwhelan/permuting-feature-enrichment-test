@@ -116,3 +116,4 @@ to investigate:
 * [GenometriCorr](http://genometricorr.sourceforge.net/)
 * [The Genomic Hyperbrowser](http://hyperbrowser.uio.no/hb/)
 * [The ENCODE GSC tool](http://www.encodestatistics.org/)
+* [EpiExplorer](http://epiexplorer.mpi-inf.mpg.de/)
