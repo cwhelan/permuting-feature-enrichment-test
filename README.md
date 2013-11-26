@@ -4,7 +4,7 @@ permuting-feature-enrichment-test
 This tool attempts to help determine the relationship of one set of
 genomic features to another, by executing a set of permutation tests,
 and by producing a set of graphs to help visualize the results. The basic
-idead of the permutation testing is to randomly change the location of the
+idea of the permutation testing is to randomly change the location of the
 regions of interest in the genome, counting the number of overlaps with
 the feature of interest, to determine the distribution of overlap counts
 you would expect to see between the features and the regions by chance. 
@@ -116,3 +116,4 @@ to investigate:
 * [GenometriCorr](http://genometricorr.sourceforge.net/)
 * [The Genomic Hyperbrowser](http://hyperbrowser.uio.no/hb/)
 * [The ENCODE GSC tool](http://www.encodestatistics.org/)
+* [EpiExplorer](http://epiexplorer.mpi-inf.mpg.de/)
