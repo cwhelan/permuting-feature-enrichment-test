@@ -10,10 +10,16 @@ real_bps_hit <- as.numeric(clargs[3])
 real_features_hit <- as.numeric(clargs[4])
 real_bases_overlapped <- as.numeric(clargs[5])
 directory <- clargs[6]
-color="lightblue"
+color="blue"
 if (length(clargs) == 7) {
    color <- clargs[7]
 }
+actualObservationLabel <- "Observed<NL>Overlaps"
+if (length(clargs) == 8) {
+   actualObservationLabel <- gsub("<NL>", "\n", clargs[8])
+   print(actualObservationLabel)
+}
+
 
 pdf(paste(directory, "/", gsub(" ", "_", region_name), "_to_", gsub(" ", "_", feature_name), ".pdf",sep=""))
 bps_with_hits <- read.table(paste(directory, "/", 'bps_with_hits.txt', sep=""))
@@ -52,9 +58,9 @@ plot_random_hist <- function(realnum, iterations, title, outfile, metric, region
   print(paste("arrow len", arrowlen))	
   print(paste("arrow y will be ", (arrowlen + predAtReal)))
   p <- p +							geom_segment(x=realnum, y=(arrowlen + predAtReal), xend=realnum, yend=predAtReal, arrow = arrow(length = unit(0.5, "cm"))) + 
-       	 							annotate("text", x=realnum, y=arrowlen*1.5 + predAtReal, label="Observed\nOverlaps") +
+       	 							annotate("text", x=realnum, y=arrowlen*1.5 + predAtReal, label=actualObservationLabel) +
        	 							xlim(min(min(iterations$Overlaps) - binwidth * 2, realnum - binwidth * 2), max(max(iterations$Overlaps) + binwidth * 2, realnum + binwidth * 2)) +
-       	 							theme_bw() +
+       	 							theme_bw(base_size=18) +
 								theme(plot.background = element_blank()
       							  		           ,panel.grid.major = element_blank()			  
    										   ,panel.grid.minor = element_blank()) 
@@ -71,12 +77,13 @@ shifted_bases_overlapped <- read.table(paste(directory, "/",'shifted_bases_overl
 
 plot_shift_hits <- function(shift_results, title) {
   names(shift_results) <- c("Shift", "Overlaps")
-  p <- ggplot(shift_results, aes(x=Shift, y=Overlaps)) + opts(title=title)
+  p <- ggplot(shift_results, aes(x=Shift, y=Overlaps)) + opts(title=title )
   p + geom_line() +
-       	 							theme_bw() +
+       	 							theme_bw(base_size=18) +
 								theme(plot.background = element_blank()
       							  		           ,panel.grid.major = element_blank()			  
-   										   ,panel.grid.minor = element_blank()) 
+   										   ,panel.grid.minor = element_blank()
+										   )
 }
       
 plot_shift_hits(shifted_bp_hits, paste("Number of ", region_name, "s that Overlap a", feature_name, sep=""))

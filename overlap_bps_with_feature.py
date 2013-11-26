@@ -25,7 +25,8 @@ parser.add_argument("--iteration_number", type=int, help="starting iteration num
 parser.add_argument("--iteration_chunk_size", type=int, default=100, help="number of iterations in this chunk")
 parser.add_argument("--use_condor", action='store_true', dest="use_condor", help="execute permutation workers on the condor scheduling engine")
 parser.add_argument("--verbose", action='store_true', dest="verbose", help="execute permutation workers on the condor scheduling engine")
-
+parser.add_argument("--plot_hist_color", help="color to use in the plot histograms", default="blue")
+parser.add_argument("--actual_observation_label", help="label to use for the observed data point on the plot")
 
 args = parser.parse_args()
 
@@ -44,6 +45,8 @@ replot = args.replot
 shift_only = args.shift_only
 use_condor = args.use_condor
 verbose = args.verbose
+plot_hist_color = args.plot_hist_color
+actual_obs_label = args.actual_observation_label
 
 script_path = os.path.dirname( os.path.realpath( __file__ ) )
 
@@ -196,10 +199,19 @@ if process_iteration_cmd == None:
     if not shift_only:
         results_dirname = bp_name.replace(' ', '_') + "_to_" + feature_name.replace(' ', '_')
         # plot the results
+        print actual_obs_label
         if replot:
-            subprocess.call(map(str, ['Rscript', script_path + '/plot_results.R', feature_name, bp_name, num_real_bp_hits, num_real_feature_hits, real_bases_overlapped, results_dirname]))
+            plot_args = ['Rscript', script_path + '/plot_results.R', feature_name, bp_name, num_real_bp_hits, num_real_feature_hits, real_bases_overlapped, results_dirname, plot_hist_color]
+            if actual_obs_label is not None:
+                plot_args = plot_args + [ actual_obs_label ]
+            print plot_args
+            subprocess.call(map(str, plot_args))
         else:
-            subprocess.call(map(str, ['Rscript', script_path + '/plot_results.R', feature_name, bp_name, num_real_bp_hits, num_real_feature_hits, real_bases_overlapped, '.']))
+            plot_args = ['Rscript', script_path + '/plot_results.R', feature_name, bp_name, num_real_bp_hits, num_real_feature_hits, real_bases_overlapped, '.', plot_hist_color]
+            if actual_obs_label is not None:
+                plot_args = plot_args + [ actual_obs_label ]
+            print plot_args
+            subprocess.call(map(str, plot_args))
 
             os.mkdir(results_dirname)
             shutil.move('bases_overlapped.txt', results_dirname + "/")
